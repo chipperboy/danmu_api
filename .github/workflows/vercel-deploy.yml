@@ -1,0 +1,14 @@
+name: Trigger Vercel Deploy on Push
+
+on:
+  push:
+    branches:
+      - main  # 当 main 分支有任何新代码进入时触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Deploy Hook to Vercel
+        run: |
+          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
