@@ -1,25 +1,27 @@
 name: Combined Fork Sync and Deploy
+
 permissions:
   contents: write
+
 on:
   schedule:
-    - cron: "0 0 * * *"  # 每天午夜执行 [1]
-  workflow_dispatch:      # 允许手动触发 [1]
+    - cron: "0 0 * * *"  # 每天午夜执行
+  workflow_dispatch:      # 允许手动触发
 
 jobs:
   sync_and_deploy:
     name: Sync and Deploy
     runs-on: ubuntu-latest
-    if: ${{ github.event.repository.fork }} [1]
+    if: ${{ github.event.repository.fork }}
     steps:
       - name: Checkout target repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} [1]
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sync Upstream
-        id: sync              # 为此步骤设置 ID 以便获取输出结果
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4 [1]
+        id: sync              # 为此步骤设置 ID
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
         with:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
           upstream_sync_repo: huangxd-/danmu_api
@@ -27,15 +29,15 @@ jobs:
           target_sync_branch: main
           test_mode: false
 
-      # 仅在同步成功 [1] 且检测到上游有新提交时触发部署 [2]
+      # 仅在同步成功且检测到上游有新提交时触发部署
       - name: Trigger Vercel Deployment
         if: success() && steps.sync.outputs.has_new_commits == 'true'
         run: |
           echo "检测到新提交，正在触发 Vercel 部署..."
-          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}" [2]
+          curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
 
       - name: Check for Failure
-        if: failure() [1]
+        if: failure()
         run: |
           echo "[Error] Sync failed. Please check the logs."
           exit 1
