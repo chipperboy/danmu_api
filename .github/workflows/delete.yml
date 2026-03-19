@@ -1,8 +1,8 @@
-name: Cleanup Actions Logs
+name: Cleanup Actions Runs
 
 on:
   schedule:
-    # 每周三上午8点（北京时间 = UTC+8）
+    # 北京时间周三 08:00 = UTC 周二 24:00 = 0 0 * * 3
     - cron: '0 0 * * 3'
   workflow_dispatch: {}
 
@@ -14,17 +14,17 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Delete workflow run logs
+      - name: Delete workflow runs (all completed)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 拉取所有已完成的 workflow runs
+          # 获取所有已完成的 runs
           run_ids=$(gh api \
             -H "Accept: application/vnd.github+json" \
             "/repos/${{ github.repository }}/actions/runs?status=completed&per_page=100" \
             --paginate -q '.workflow_runs[].id')
 
           for id in $run_ids; do
-            echo "Deleting logs for run $id"
-            gh api -X DELETE "/repos/${{ github.repository }}/actions/runs/$id/logs"
+            echo "Deleting run $id"
+            gh api -X DELETE "/repos/${{ github.repository }}/actions/runs/$id"
           done
