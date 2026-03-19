@@ -1,20 +1,25 @@
 name: Fork Sync
+
 permissions:
     contents: write
+
 on:
     schedule:
         - cron: "0 0 * * *"  # 每天午夜执行
     workflow_dispatch:  # 允许手动触发
+
 jobs:
     sync_with_upstream:
         name: Sync with Upstream
         runs-on: ubuntu-latest
         if: ${{ github.event.repository.fork }}
+
         steps:
             - name: Checkout target repo
               uses: actions/checkout@v4
               with:
                 token: ${{ secrets.GITHUB_TOKEN }}
+
             - name: Sync Upstream
               uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
               with:
@@ -23,15 +28,10 @@ jobs:
                   upstream_sync_branch: main
                   target_sync_branch: main
                   test_mode: false
+
             - name: Check for new commits
               if: success()
               run: echo "Sync completed successfully"
-
-            # 新增步骤：触发 Vercel 部署
-            - name: Trigger Vercel Deployment
-              if: success()
-              run: |
-                curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
 
             - name: Check for Failure
               if: failure()
