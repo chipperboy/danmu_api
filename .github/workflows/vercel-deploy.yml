@@ -1,13 +1,16 @@
-name: Trigger Vercel Deploy on Push
+name: Trigger Vercel Deploy
 
 on:
-  push:
-    branches:
-      - main  # 当 main 分支有任何新代码进入时触发
+  workflow_run:
+    workflows: ["Fork Sync"]  # 这里的名称必须和你原同步脚本顶部的 name 一致
+    types:
+      - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # 只有当同步脚本运行成功时，才触发部署
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Send Deploy Hook to Vercel
         run: |
